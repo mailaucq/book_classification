@@ -20,7 +20,7 @@ import platform
 def join_lists(l1, l2):
     str_res = ''
     for x,y in zip(l1, l2):
-        str_res+=str(x) + '(+/-' + str(y) + ') '
+        str_res+= str(x) + '(+/-' + str(y) + ') '
     return str_res
 
 
@@ -81,42 +81,42 @@ class BookClassification(object):
             path = 'datasets/brown_dataset_balanced.csv'
         return pd.read_csv(path)
 
-    def get_common_words(self, segments):
-        commom_words = segments[0]
-        for index, i in enumerate(segments):
-            commom_words = list(set(commom_words) & set(i))
-        result = {word: index for index, word in enumerate(commom_words)}
-        return result
-    
-    def get_word_index(self, segments):
+    def get_word_index(self, texts):
         word_index = {}
         index_word = {}
         count = 0
-        for seg in segments:
-            for word in list(set(seg)):
+        for text in texts:
+            for word in list(set(text)):
                 if word not in word_index:
                     word_index[word] = str(count)
                     index_word[str(count)] = word
                     count += 1
         return word_index, index_word
     
-    def get_sequences(self, segments, word_index):
+    def get_sequences(self, texts, word_index):
         sequences = []
-        for seg in segments:
+        for text in texts:
             sequence = []
-            for s in seg:
-                sequence.append(word_index[s])
+            for w in text:
+                sequence.append(word_index[w])
             sequences.append(sequence)
         return sequences
     
-    def get_top_words(self, segments, number=None):
+    def get_common_words(self, texts): 
+        commom_words = texts[0]
+        for index, i in enumerate(texts):
+            commom_words = list(set(commom_words) & set(i))
+        result = {word: index for index, word in enumerate(commom_words)}
+        return result
+    
+    def get_top_words(self, texts, number=None):
         if self.feature_selection.find('top_')!=-1:
             top_words = int(self.feature_selection[self.feature_selection.rfind('_') + 1:])
         else:
             top_words = number
         all_words = []
-        for i in segments:
-            all_words.extend(list(set(i)))
+        for text in texts:
+            all_words.extend(list(set(text)))
         counts = Counter(all_words)
         features = counts.most_common(top_words)
         most_commom = dict()
@@ -124,6 +124,7 @@ class BookClassification(object):
             most_commom[feat[0]] = index
         return most_commom
 
+    # get corpus(array of texts), segmented corpus( texto dividido en m particiones de min_size, labels
     def get_corpus(self):
         labels = list(self.dataset['label'])
         texts = list(self.dataset['words'])
@@ -131,18 +132,19 @@ class BookClassification(object):
         #corpus = [i[:self.text_partition] for i in corpus]
         min_size = self.text_partition
         size_partitions = []
-        segmented_corpus = []
+        segmented_corpus = [] # segment corpus
         for book in corpus:
-            partitions = int(round(len(book)/min_size,2)+0.5)
+            partitions = int(round(len(book)/min_size,2) + 0.5) #? por que mas 0.5?
             segments = [book[int(round(min_size * i)): int(round(min_size * (i + 1)))] for i in range(partitions)]
             size_partitions.append(len(segments))
             segmented_corpus.append(segments)
         #self.iterations = int(np.mean(size_partitions))
         return corpus, segmented_corpus, labels
 
-    def get_random_corpus(self, corpus, mode_sequences=True):
+    # get random partitions of book	
+    def get_random_corpus(self, segmented_corpus, mode_sequences=True):
         selected = []
-        for partitions in  corpus:
+        for partitions in  segmented_corpus:
             if self.number_iterations == 1:
                 random_index = 0
             else:
@@ -195,8 +197,8 @@ class BookClassification(object):
             print()
         return limiar_scores, limiar_sds
     
-    def get_corpus_scores_g2v(self, corpus, classes, dict_categories, model, number_books):
-        selected_corpus, words_features, word_index, index_word = self.get_random_corpus(corpus, mode_sequences=True)
+    def get_corpus_scores_g2v(self, segmented_corpus, classes, dict_categories, model, number_books):
+        selected_corpus, words_features, word_index, index_word = self.get_random_corpus(segmented_corpus, mode_sequences=True)
         print('Word features: ',len(words_features), words_features)
         labels = []
         dimensions = len(self.embedding_percentages) + 1
