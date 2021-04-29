@@ -164,19 +164,20 @@ class BookClassification(object):
         return selected, words_features, word_index, index_word
 
     def variability_analysis(self, model=None):
-    	corpus, segmented_corpus, labels = self.get_corpus()
-    	for partitions in segmented_corpus:
-    	    all_network_features = []
-    	    df = pd.DataFrame(columns=["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3"], index=range(len(partitions)))
-    	    for index, partition in enumerate(partitions):
-    	    	words_features, index_word = self.get_word_index(partition)
-    	    	obj = network.CNetwork(partition, model, index_word, self.embedding_percentages, self.path)
-    	    	cNetwork = obj.create_network()
-    	    	features = obj.get_network_measures(cNetwork, words_features)
-    	    	df.loc[index] = features
-    	    variability = np.sqrt(df.pow().mean()/df.mean()**2 - 1)
-    	    print(variability)
-        
+        corpus, segmented_corpus, labels = self.get_corpus()
+        for partitions in segmented_corpus:
+            all_network_features = []
+            df = pd.DataFrame(columns=["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3"], index=range(len(partitions)))
+            word_index, index_word = self.get_word_index(partitions)
+            for index, partition in enumerate(partitions):
+                words_features = [word_index[w] for w in partition]
+                obj = network.CNetwork(partition, model, index_word, self.embedding_percentages, self.path)
+                cNetwork = obj.create_network()
+                features = obj.get_network_global_measures(cNetwork)
+                df.loc[index] = features
+            variability = np.sqrt(df.pow(2).mean()/df.mean()**2 - 1)
+            print("variability", variability)
+
     def get_corpus_scores(self, corpus, classes, dict_categories, model, number_books):
         selected_corpus, words_features, word_index, index_word = self.get_random_corpus(corpus)
         print('Word features: ',len(words_features), words_features)
