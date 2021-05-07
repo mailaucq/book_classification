@@ -175,8 +175,9 @@ class BookClassification(object):
                 cNetwork = obj.create_network()
                 features = obj.get_network_global_measures(cNetwork)
                 df.loc[index] = features
-            variability = np.sqrt(df.pow(2).mean()/df.mean()**2 - 1)
-            print("variability", variability)
+        #variability = np.sqrt(df.pow(2).mean()/df.mean()**2 - 1)
+        variability = df.std(axis=0)/df.mean(axis=0)
+        print("variability", variability)
 
     def get_corpus_scores(self, corpus, classes, dict_categories, model, number_books):
         selected_corpus, words_features, word_index, index_word = self.get_random_corpus(corpus)
