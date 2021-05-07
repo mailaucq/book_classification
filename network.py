@@ -276,15 +276,18 @@ class CNetwork(object):
         network_features = np.array(network_features)
         return network_features
 
-    def shortest_path(self, network, features):
-        average_short_path = network.shortest_paths(features)
+    def shortest_path(self, network, features=None):
+        if features is not None:
+            average_short_path = network.shortest_paths(features)
+        else:
+            average_short_path = network.shortest_paths()
         result = []
         for path in average_short_path:
             average = float(np.divide(np.sum(path), (len(path) - 1)))
             result.append(average)
         return result
 
-    def symmetry(self, network, features):
+    def symmetry(self, network, features=None):
         in_network = self.path + 'auxiliar_network.xnet'
         output = self.path + 'auxiliar.csv'
         xnet.igraph2xnet(network, in_network)
@@ -310,13 +313,16 @@ class CNetwork(object):
         final_results = dict()
         for key, values in zip(keys, sim_results):
             valid_syms = []
-            for word in features:
-                node = network.vs.find(name=word)
-                valid_syms.append(values[node.index])
+            if features is not None:
+                for word in features:
+                    node = network.vs.find(name=word)
+                    valid_syms.append(values[node.index])
+            else:
+                valid_syms = values
             final_results[key] = valid_syms
         return final_results
 
-    def accessibility(self, network, features, h):
+    def accessibility(self, network, h, features=None):
         in_network = self.path + 'auxiliar_network.xnet'
         extra_file = self.path + 'acc_results.txt'
         xnet.igraph2xnet(network, in_network)
@@ -329,9 +335,12 @@ class CNetwork(object):
         os.system(path_command)
         accs_values = read_result_file(extra_file)
         result = []
-        for word in features:
-            node = network.vs.find(name=word)
-            result.append(accs_values[node.index])
+        if features is not None:
+            for word in features:
+                node = network.vs.find(name=word)
+                result.append(accs_values[node.index])
+        else:
+            result = accs_values
         return result
 
         
@@ -354,8 +363,8 @@ class CNetwork(object):
         mSym2 = symmetries['mSym2']
         bSym3 = symmetries['bSym3']
         mSym3 = symmetries['mSym3']
-        accs_h2 = self.accessibility(network, found_features, 2)
-        accs_h3 = self.accessibility(network, found_features, 3)
+        accs_h2 = self.accessibility(network, 2, found_features)
+        accs_h3 = self.accessibility(network, 3, found_features)
         measures = [dgr, pr, btw, cc, sp, bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
         #measures = [bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
         network_features = []
@@ -365,6 +374,25 @@ class CNetwork(object):
                 feature[features[word]] = value
             network_features.extend(feature)
         network_features = np.array(network_features)
+        network_features[np.isnan(network_features)] = 0
+        print('Len features:', len(network_features))
+        return network_features
+
+    def get_network_global_measures(self, network):
+        dgr = np.average(network.degree())
+        pr = np.average(network.pagerank())
+        btw = np.average(network.betweenness())
+        cc = np.average(network.transitivity_local_undirected())
+        sp = np.average(self.shortest_path(network))
+        symmetries = self.symmetry(network)
+        bSym2 = np.average(symmetries['bSym2'])
+        mSym2 = np.average(symmetries['mSym2'])
+        bSym3 = np.average(symmetries['bSym3'])
+        mSym3 = np.average(symmetries['mSym3'])
+        accs_h2 = np.average(list(self.accessibility(network, 2).values()))
+        accs_h3 = np.average(list(self.accessibility(network, 3).values()))
+        measures = [dgr, pr, btw, cc, sp, bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
+        network_features = np.array(measures)
         network_features[np.isnan(network_features)] = 0
         print('Len features:', len(network_features))
         return network_features
