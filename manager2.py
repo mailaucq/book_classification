@@ -20,7 +20,7 @@ import platform
 def join_lists(l1, l2):
     str_res = ''
     for x,y in zip(l1, l2):
-        str_res+= str(x) + '(+/-' + str(y) + ') '
+        str_res+= str(x) + ' (+/-' + str(y) + ') '
     return str_res
 
 
@@ -40,6 +40,7 @@ def graph2vec(path, operating_system, networks):
     g2v = pd.read_csv(extra_file, sep=',', lineterminator='\n')
     g2v.set_index("type")
     all_network_features = [g2v.loc[i].values for i, _ in enumerate(networks)]
+    print("graph2vec")
     return all_network_features
 
 
@@ -77,6 +78,8 @@ class BookClassification(object):
             path = 'datasets/dataset_1.csv'
         elif name == 'stanisz':
             path = 'datasets/dataset_3.csv'
+        elif name == '13authors':
+            path = 'datasets/books_authorship_english.csv'
         else:
             path = 'datasets/brown_dataset_balanced.csv'
         return pd.read_csv(path)
@@ -93,13 +96,16 @@ class BookClassification(object):
                     count += 1
         return word_index, index_word
     
+    def get_sequence(self, text, word_index):
+        sequence = []
+        for w in text:
+            sequence.append(word_index[w])
+        return sequence
+        
     def get_sequences(self, texts, word_index):
         sequences = []
         for text in texts:
-            sequence = []
-            for w in text:
-                sequence.append(word_index[w])
-            sequences.append(sequence)
+            sequences.append(get_sequence(text, word_index))
         return sequences
     
     def get_common_words(self, texts): 
@@ -266,7 +272,7 @@ class BookClassification(object):
         print('\n\n')
         for i in range(self.number_iterations):
             print('Init of iteration ' + str(i+1) + ' .......')
-            limiar_scores, limiar_sds = self.get_corpus_scores_g2v(segmented_corpus, classes, dict_categories, model, number_books)
+            limiar_scores, limiar_sds = self.get_corpus_scores(segmented_corpus, classes, dict_categories, model, number_books)
             for index, (score, sd) in enumerate(zip(limiar_scores, limiar_sds)):
                 iteration_score_container[index].append(score)
                 iteration_sd_container[index].append(sd)
@@ -284,19 +290,52 @@ class BookClassification(object):
             it_score = [round(i,2) for i in it_score]
             it_sd = [round(i, 2) for i in it_sd]
             str_result = join_lists(it_score, it_sd)
-            file_result.write(str_result + '\n')
+            file_result.write(str_result)
             print(str_result)
             print()
         file_result.close()
         shutil.rmtree(self.path)
+    
+    def variability_analysis(self, model=None):
+        dimensions = len(self.embedding_percentages) + 1
+        columns=["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]
+        corpus, segmented_corpus, labels = self.get_corpus()
+        word_index, index_word = self.get_word_index(corpus)
+        
+        print('Training word embeddings ....')
+        objEmb = embeddings.WordEmbeddings(corpus, self.embeddings)
+        model = objEmb.get_embedding_model()
+ 
+        index_books = [str(num_book) + "_" + str(dim) for num_book in range(len(labels))  for dim in range(dimensions)]
+        df_variability = pd.DataFrame(columns=columns, index=index_books) 
+        for num_book, (partitions, label) in enumerate(zip(segmented_corpus, labels)):
+            index_partitions = [str(partition) + "_" + str(dim) for partition in range(len(partitions)) for dim in range(dimensions)]
+            df_global = pd.DataFrame(columns=columns, index=index_partitions)
+            
+            for index, partition in enumerate(partitions):
+                sequenced = self.get_sequence(partition, word_index)
+            	 
+                obj = network.CNetwork(sequenced, model, index_word, self.embedding_percentages, self.path)
+                cNetworks = obj.create_networks()
+                for dim, net in enumerate(cNetworks):
+                    features = obj.get_network_global_measures(net)
+                    df_global.loc[str(index) + "_" + str(dim)] = features
+                    df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
+            for dim in range(dimensions):
+                #variability = np.sqrt(df_global[df_global["i_percentage"]==dim].pow(2).mean()/df_global[df_global["i_percentage"]==dim].mean()**2 - 1)
+                print(df_global.head(5))
+                variability = df_global[df_global["i_percentage"]==dim].std(axis=0)/df_global[df_global["i_percentage"]==dim].mean(axis=0)
+                df_variability.loc[str(num_book) + "_" + str(dim)] = variability
+                df_variability.loc[str(num_book) + "_" + str(dim)]["i_percentage"] = dim
+                print("variability", variability)
+        df_variability.to_csv(self.output_file + "variability")
         
 
 if __name__ == '__main__':
-
-    dataset = 'brown' # 'vanessa' 'brown' 'stanisz'
-    size = 2000
+    dataset = 'stanisz' # 'vanessa' 'brown' 'stanisz'
+    size = 1000
     feat_sel = 'common_words' # top_50  common_words
-    iterations = 2
+    iterations = 4
     obj = BookClassification(dataset=dataset, text_partition=size, feature_selection=feat_sel, sampling=iterations)
     obj.classification_analysis()
-    
+

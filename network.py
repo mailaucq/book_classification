@@ -56,7 +56,7 @@ class CNetwork(object):
         #network.add_vertices(len(self.words))
         network.add_edges(edges)
         network.simplify()
-        print('Nodes:', len(self.words), '-', 'Edges:', len(network.get_edgelist()))
+        #print('Nodes:', len(self.words), '-', 'Edges:', len(network.get_edgelist()))
         return network
 
     def add_embeddings(self, network):
@@ -379,19 +379,19 @@ class CNetwork(object):
         return network_features
 
     def get_network_global_measures(self, network):
-        dgr = np.average(network.degree())
-        pr = np.average(network.pagerank())
+        #dgr = np.average(network.degree())
+        #pr = np.average(network.pagerank())
         btw = np.average(network.betweenness())
-        cc = np.average(network.transitivity_local_undirected())
-        sp = np.average(self.shortest_path(network))
-        symmetries = self.symmetry(network)
-        bSym2 = np.average(symmetries['bSym2'])
-        mSym2 = np.average(symmetries['mSym2'])
-        bSym3 = np.average(symmetries['bSym3'])
-        mSym3 = np.average(symmetries['mSym3'])
-        accs_h2 = np.average(list(self.accessibility(network, 2).values()))
-        accs_h3 = np.average(list(self.accessibility(network, 3).values()))
-        measures = [dgr, pr, btw, cc, sp, bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
+        #cc = np.average(network.transitivity_local_undirected())
+        #sp = np.average(self.shortest_path(network))
+        #symmetries = self.symmetry(network)
+        #bSym2 = np.average(symmetries['bSym2'])
+        #mSym2 = np.average(symmetries['mSym2'])
+        #bSym3 = np.average(symmetries['bSym3'])
+        #mSym3 = np.average(symmetries['mSym3'])
+        #accs_h2 = np.average(list(self.accessibility(network, 2).values()))
+        #accs_h3 = np.average(list(self.accessibility(network, 3).values()))
+        measures = [btw]#[dgr, pr, btw, cc, sp, bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
         network_features = np.array(measures)
         network_features[np.isnan(network_features)] = 0
         print('Len features:', len(network_features))
