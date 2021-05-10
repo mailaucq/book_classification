@@ -319,8 +319,8 @@ class BookClassification(object):
                 cNetworks = obj.create_networks()
                 for dim, net in enumerate(cNetworks):
                     features = obj.get_network_global_measures(net)
-                    df_global.loc[str(index) + "_" + str(dim)] = features
-                    df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
+                    df_global.loc[str(index) + "_" + str(dim)] = np.append(features, dim)
+                    #df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
             for dim in range(dimensions):
                 #variability = np.sqrt(df_global[df_global["i_percentage"]==dim].pow(2).mean()/df_global[df_global["i_percentage"]==dim].mean()**2 - 1)
                 print(df_global.head(5))
