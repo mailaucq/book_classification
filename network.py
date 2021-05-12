@@ -393,7 +393,7 @@ class CNetwork(object):
         accs_h3 = np.average(list(self.accessibility(network, 3).values()))
         measures = [dgr, pr, btw, cc, sp, bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
         network_features = np.array(measures)
-        network_features[np.isnan(network_features)] = 0
+        #network_features[np.isnan(network_features)] = 0
         print('Len features:', len(network_features))
         return network_features
         
