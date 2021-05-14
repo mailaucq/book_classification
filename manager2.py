@@ -55,7 +55,7 @@ class BookClassification(object):
         self.embeddings = embeddings
         self.feature_selection = feature_selection
         self.number_iterations = sampling
-        self.embedding_percentages = [index for index in range(1,21)]
+        self.embedding_percentages = [index for index in range(1,2)]
          # [1, 5, 10, 15, 20]
         name = dataset + '_' + str(text_partition) + '_' + feature_selection +  '_' + str(self.number_iterations) 
         self.path = 'auxiliar_folder/' + name   + '/'
@@ -298,7 +298,7 @@ class BookClassification(object):
     
     def variability_analysis(self, model=None):
         dimensions = len(self.embedding_percentages) + 1
-        columns=["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]
+        columns=["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3", "i_percentage"]#["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]
         corpus, segmented_corpus, labels = self.get_corpus()
         word_index, index_word = self.get_word_index(corpus)
         
@@ -322,8 +322,8 @@ class BookClassification(object):
                     df_global.loc[str(index) + "_" + str(dim), df_global.columns != 'i_percentage'] = features
                     df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
             for dim in range(dimensions):
-                variability = np.sqrt(df_global[df_global["i_percentage"]==dim].pow(2).mean()/df_global[df_global["i_percentage"]==dim].mean()**2 - 1)
-                #variability = df_global[df_global["i_percentage"] == dim].std(axis=0)/df_global[df_global["i_percentage"] == dim].mean(axis=0)
+                #variability = np.sqrt(df_global[df_global["i_percentage"]==dim].pow(2).mean()/df_global[df_global["i_percentage"]==dim].mean()**2 - 1)
+                variability = df_global[df_global["i_percentage"] == dim].std(axis=0)/df_global[df_global["i_percentage"] == dim].mean(axis=0)
                 df_variability.loc[str(num_book) + "_" + str(dim)] = variability
                 df_variability.loc[str(num_book) + "_" + str(dim)]["i_percentage"] = dim
                 print("variability", variability)

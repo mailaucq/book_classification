@@ -3,11 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-dimensions = range(21)
+dimensions = range(2)
 sizes = [300, 600, 900, 1200, 1500, 1800, 2100]
 datasets = ["13authors"]#["stanisz", "brown", "vanessa"]
-measures = ["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3"]
-measures_name = ["Average Degree $<k_n>$", "Average PageRank $<PR>$", "Average Betweeness $<B>$", "Average Clustering Coeficient $<C>$", "Average Shortest Path Lenght $<l>$", "Average Symmetry Backbone $<Sb_{h=2}>$", "Average Symmetry Merge $<Sm_{h=2}>$", "Average Symmetry Backbone $<Sb_{h=3}>$", "Average Symmetry Merge $<Sm_{h=3}$>", r"Average Accessibility $<\alpha^{h=2}$>", r"Average Accessibility $<\alpha^{h=3}$>"]
+measures = ["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3"]
+measures_name = ["Average Neighbor Degree $<k_n>$", "Average Betweeness $<B>$", "Average Clustering Coeficient $<C>$", "Average Shortest Path Lenght $<l>$", r"Standard Desviation Shortest Path Lenght $\sigma{l}$", r"Average Accessibility $<\alpha^{h=2}$>", r"Average Accessibility $<\alpha^{h=3}$>"] #["Average Degree $<k_n>$", "Average PageRank $<PR>$", "Average Betweeness $<B>$", "Average Clustering Coeficient $<C>$", "Average Shortest Path Lenght $<l>$", "Average Symmetry Backbone $<Sb_{h=2}>$", "Average Symmetry Merge $<Sm_{h=2}>$", "Average Symmetry Backbone $<Sb_{h=3}>$", "Average Symmetry Merge $<Sm_{h=3}$>", r"Average Accessibility $<\alpha^{h=2}$>", r"Average Accessibility $<\alpha^{h=3}$>"]
 
 
 for measure, measure_name in zip(measures, measures_name):
