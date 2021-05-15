@@ -55,7 +55,7 @@ class BookClassification(object):
         self.embeddings = embeddings
         self.feature_selection = feature_selection
         self.number_iterations = sampling
-        self.embedding_percentages = [index for index in range(1,2)]
+        self.embedding_percentages = [index for index in range(1,21)]
          # [1, 5, 10, 15, 20]
         name = dataset + '_' + str(text_partition) + '_' + feature_selection +  '_' + str(self.number_iterations) 
         self.path = 'auxiliar_folder/' + name   + '/'
