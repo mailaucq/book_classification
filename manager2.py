@@ -164,13 +164,13 @@ class BookClassification(object):
         else:
             words_features = self.get_top_words(selected)
 
-        if len(words_features)==0:
+        if len(words_features) == 0:
             words_features = self.get_top_words(selected, 1)
         return selected, words_features, word_index, index_word
 
     def get_corpus_scores(self, corpus, classes, dict_categories, model, number_books):
         selected_corpus, words_features, word_index, index_word = self.get_random_corpus(corpus)
-        print('Word features: ',len(words_features), words_features)
+        print('Word features: ', len(words_features), words_features)
         labels = []
         dimensions = len(self.embedding_percentages) + 1
         all_features_container = [[] for _ in range(dimensions)]
@@ -180,7 +180,7 @@ class BookClassification(object):
             print('category:', category)
             labels.append(dict_categories[category])
             selected_partition = book
-            obj = network.CNetwork(selected_partition, model,   index_word, self.embedding_percentages, self.path)
+            obj = network.CNetwork(selected_partition, model, index_word, self.embedding_percentages, self.path)
             cNetworks = obj.create_networks()
             all_network_features = [obj.get_network_measures(net, words_features) for net in cNetworks]
             for net_index, features in enumerate(all_network_features):
