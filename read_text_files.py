@@ -1,6 +1,7 @@
 import pandas as pd
 import glob
 
+dataset_path = "datasetv2/"
 df = pd.DataFrame(columns=["label", "text"])
 txt_files = glob.glob("books_dataset_2/*.txt")
 for txt_file in txt_files:
@@ -10,4 +11,4 @@ for txt_file in txt_files:
 	df = df.append({"label": authorname, "text": text}, ignore_index=True)
 	infile.close()
 	print(authorname)
-df.to_csv("dataset_2.csv", index=False)
+df.to_csv(dataset_path + "dataset_2.csv", index=False)
