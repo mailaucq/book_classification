@@ -378,30 +378,44 @@ class CNetwork(object):
         print('Len features:', len(network_features))
         return network_features
 
-    def get_network_global_measures(self, network):
-        dgr_n, _ = network.knn()
-        dgr_n = np.average(dgr_n)
-        #pr = np.average(network.pagerank())
-        btw = network.betweenness()
-        btw = np.average([0 if np.isnan(b) else b for b in btw])
-        cc = network.transitivity_local_undirected()
-        cc = np.average([0 if np.isnan(c) else c for c in cc])
-        sp1 = self.shortest_path(network)
-        sp = np.average([0 if np.isnan(s) else s for s in sp1])
-        sp_std = np.std([0 if np.isnan(s) else s for s in sp1])
-        #symmetries = self.symmetry(network)
-        #bSym2 = np.average(symmetries['bSym2'])
-        #mSym2 = np.average(symmetries['mSym2'])
-        #bSym3 = np.average(symmetries['bSym3'])
-        #mSym3 = np.average(symmetries['mSym3'])
-        accs_h2 = list(self.accessibility(network, 2).values())
-        accs_h2 = np.average([0 if np.isnan(a) else a for a in accs_h2])
-        accs_h3 = list(self.accessibility(network, 3).values())
-        accs_h3 = np.average([0 if np.isnan(a) else a for a in accs_h3])
-        measures = [dgr_n, btw, cc, sp, sp_std, accs_h2, accs_h3] #[dgr, pr, btw, cc, sp, bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
-        network_features = np.array(measures)
-        #network_features[np.isnan(network_features)] = 0
-        print('Len features:', len(network_features))
-        return network_features
+    def get_network_global_measures(self, network, measures):
+        network_features = []
+        if "dgr_n" in measures:
+            dgr_n, _ = network.knn()
+            dgr_n = np.average(dgr_n)
+            network_features.append(dgr_n)#pr = np.average(network.pagerank())
+        if "btw" in measures:
+            btw = network.betweenness()
+            btw = np.average([0 if np.isnan(b) else b for b in btw])
+            network_features.append(btw)
+        if "cc" in measures:
+            cc = network.transitivity_local_undirected()
+            cc = np.average([0 if np.isnan(c) else c for c in cc])
+            network_features.append(cc)
+        if "sp" in measures:
+            sp1 = self.shortest_path(network)
+            sp = np.average([0 if np.isnan(s) else s for s in sp1])
+            network_features.append(sp)
+        if "sp_std" in measures:
+            #	sp1 = self.shortest_path(network)
+            sp_std = np.std([0 if np.isnan(s) else s for s in sp1])
+            network_features.append(sp_std)
+            #symmetries = self.symmetry(network)
+            #bSym2 = np.average(symmetries['bSym2'])
+            #mSym2 = np.average(symmetries['mSym2'])
+            #bSym3 = np.average(symmetries['bSym3'])
+            #mSym3 = np.average(symmetries['mSym3'])
+        if "accs_h2" in measures:
+            accs_h2 = list(self.accessibility(network, 2).values())
+            accs_h2 = np.average([0 if np.isnan(a) else a for a in accs_h2])
+            network_features.append(accs_h2)
+        if "accs_h3" in measures:
+            accs_h3 = list(self.accessibility(network, 3).values())
+            accs_h3 = np.average([0 if np.isnan(a) else a for a in accs_h3])
+            network_features.append(accs_h3)
+        network_features_arr = np.array(network_features)
+        network_features_arr[np.isnan(network_features_arr)] = 0
+        print('Len features:', len(network_features_arr))
+        return network_features_arr
         
 
