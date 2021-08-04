@@ -1,0 +1,6 @@
+PAra instalar fasttext
+$ git clone https://github.com/facebookresearch/fastText.git
+$ cd fastText
+$ sudo pip install .
+$ # or :
+$ sudo python setup.py install
