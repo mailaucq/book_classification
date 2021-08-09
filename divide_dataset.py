@@ -62,18 +62,32 @@ def split_stratified_into_train_val_test(df_input, stratify_colname='y',
 
     return df_train, df_val, df_test
 
+<<<<<<< HEAD
 RANDOM_SEED = 20
 dataset_path = "datasetsv2/"
 name_dataset = "books_authorship_english"
 
 data = pd.read_csv(dataset_path + name_dataset +".csv") 
 df_train, df_val, df_test = split_stratified_into_train_val_test(data, stratify_colname='label', frac_train=0.60, frac_val=0.20, frac_test=0.20, random_state=RANDOM_SEED)
+=======
+dataset_path = ""
+name_dataset = "dataset_2"
+
+data = pd.read_csv(dataset_path + name_dataset +".csv") 
+df_train, df_val, df_test = split_stratified_into_train_val_test(data, stratify_colname='label', frac_train=0.60, frac_val=0.20, frac_test=0.20)
+>>>>>>> db1257d1d46b432bd5217b2314737fdf4895d083
 
 
 print(df_train.label.value_counts())
 print(df_val.label.value_counts())
 print(df_test.label.value_counts())
+<<<<<<< HEAD
 df_train.to_csv(dataset_path + "df_train_"+name_dataset+".csv", index=False)
 df_val.to_csv(dataset_path + "df_val_"+name_dataset+".csv", index=False)
 df_test.to_csv(dataset_path + "df_test_"+name_dataset+".csv", index=False)
+=======
+df_train.to_csv("df_train_"+name_dataset+".csv", index=False)
+df_val.to_csv("df_val_"+name_dataset+".csv", index=False)
+df_test.to_csv("df_test_"+name_dataset+".csv", index=False)
+>>>>>>> db1257d1d46b432bd5217b2314737fdf4895d083
 
