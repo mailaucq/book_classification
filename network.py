@@ -355,7 +355,7 @@ class CNetwork(object):
                 found_features.append(word)
         measures = []
         if measures_names is None:
-        	measures_names = ["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3"]
+        	measures_names = ["cc"]#["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3"]
         if "dgr_n" in measures_names:
                 dgr_n = network.knn(found_features) #pr = network.pagerank(found_features)
                 dgr_n = np.average(dgr_n)

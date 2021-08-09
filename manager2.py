@@ -274,7 +274,7 @@ class BookClassification(object):
         print('\n\n')
         for i in range(self.number_iterations):
             print('Init of iteration ' + str(i+1) + ' .......')
-            limiar_scores, limiar_sds = self.get_corpus_scores_g2v(segmented_corpus, classes, dict_categories, model, number_books)
+            limiar_scores, limiar_sds = self.get_corpus_scores(segmented_corpus, classes, dict_categories, model, number_books)
             for index, (score, sd) in enumerate(zip(limiar_scores, limiar_sds)):
                 iteration_score_container[index].append(score)
                 iteration_sd_container[index].append(sd)
