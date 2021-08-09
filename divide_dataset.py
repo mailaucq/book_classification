@@ -64,7 +64,7 @@ def split_stratified_into_train_val_test(df_input, stratify_colname='y',
 
 RANDOM_SEED = 20
 dataset_path = "datasetsv2/"
-name_dataset = "dataset_1"
+name_dataset = "books_authorship_english"
 
 data = pd.read_csv(dataset_path + name_dataset +".csv") 
 df_train, df_val, df_test = split_stratified_into_train_val_test(data, stratify_colname='label', frac_train=0.60, frac_val=0.20, frac_test=0.20, random_state=RANDOM_SEED)
