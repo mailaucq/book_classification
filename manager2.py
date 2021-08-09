@@ -8,7 +8,7 @@ import os
 from sklearn.preprocessing import StandardScaler
 import classifier
 import shutil
-import igraph2json
+from utils import igraph2json
 import platform
 
 
@@ -20,7 +20,7 @@ import platform
 def join_lists(l1, l2):
     str_res = ''
     for x,y in zip(l1, l2):
-        str_res+= str(x) + ' (+/-' + str(y) + ') '
+        str_res+= str(x) + ' '# + ' (+/-' + str(y) + ') '
     return str_res
 
 
@@ -80,6 +80,8 @@ class BookClassification(object):
             path = 'datasets/dataset_3.csv'
         elif name == '13authors':
             path = 'datasets/books_authorship_english.csv'
+        elif name == 'dataset_1':
+            path = 'datasetsv2/dataset_1.csv'
         else:
             path = 'datasets/brown_dataset_balanced.csv'
         return pd.read_csv(path)
@@ -105,7 +107,7 @@ class BookClassification(object):
     def get_sequences(self, texts, word_index):
         sequences = []
         for text in texts:
-            sequences.append(get_sequence(text, word_index))
+            sequences.append(self.get_sequence(text, word_index))
         return sequences
     
     def get_common_words(self, texts): 
@@ -272,7 +274,7 @@ class BookClassification(object):
         print('\n\n')
         for i in range(self.number_iterations):
             print('Init of iteration ' + str(i+1) + ' .......')
-            limiar_scores, limiar_sds = self.get_corpus_scores(segmented_corpus, classes, dict_categories, model, number_books)
+            limiar_scores, limiar_sds = self.get_corpus_scores_g2v(segmented_corpus, classes, dict_categories, model, number_books)
             for index, (score, sd) in enumerate(zip(limiar_scores, limiar_sds)):
                 iteration_score_container[index].append(score)
                 iteration_sd_container[index].append(sd)
@@ -331,8 +333,8 @@ class BookClassification(object):
         
 
 if __name__ == '__main__':
-    dataset = 'stanisz' # 'vanessa' 'brown' 'stanisz'
-    size = 1000
+    dataset = '13authors' # 'vanessa' 'brown' 'stanisz'
+    size = 50000
     feat_sel = 'common_words' # top_50  common_words
     iterations = 4
     obj = BookClassification(dataset=dataset, text_partition=size, feature_selection=feat_sel, sampling=iterations)
