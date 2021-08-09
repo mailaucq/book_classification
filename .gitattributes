@@ -1,0 +1,6 @@
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
+*.ipynb filter=lfs diff=lfs merge=lfs -text
+**/*.csv filter=lfs diff=lfs merge=lfs -text
+Global_Features.ipynb filter=lfs diff=lfs merge=lfs -text
+datasetsv2/df_train_dataset_2_1000_False.csv filter=lfs diff=lfs merge=lfs -text

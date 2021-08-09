@@ -62,12 +62,12 @@ def split_stratified_into_train_val_test(df_input, stratify_colname='y',
 
     return df_train, df_val, df_test
 
-dataset_path = "datasetv2/"
-name_dataset = "dataset_2"
+RANDOM_SEED = 20
+dataset_path = "datasetsv2/"
+name_dataset = "books_authorship_english"
 
 data = pd.read_csv(dataset_path + name_dataset +".csv") 
-df_train, df_val, df_test = split_stratified_into_train_val_test(data, stratify_colname='label', frac_train=0.60, frac_val=0.20, frac_test=0.20)
-
+df_train, df_val, df_test = split_stratified_into_train_val_test(data, stratify_colname='label', frac_train=0.60, frac_val=0.20, frac_test=0.20, random_state=RANDOM_SEED)
 
 print(df_train.label.value_counts())
 print(df_val.label.value_counts())
@@ -75,4 +75,5 @@ print(df_test.label.value_counts())
 df_train.to_csv(dataset_path + "df_train_"+name_dataset+".csv", index=False)
 df_val.to_csv(dataset_path + "df_val_"+name_dataset+".csv", index=False)
 df_test.to_csv(dataset_path + "df_test_"+name_dataset+".csv", index=False)
+
 
