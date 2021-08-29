@@ -10,7 +10,7 @@ import classifier
 import shutil
 from utils import igraph2json
 import platform
-
+from nltk.corpus import stopwords
 
 #df = pd.read_csv('datasets/dataset_1.csv') # 8 authors - 5 books per author  # min 40mil words # vanessa paper
 #df3 = pd.read_csv('datasets/dataset_3.csv') # 8 authors - 6 books per author #min 30mil words # stanisz paper inf science
@@ -72,6 +72,7 @@ class BookClassification(object):
             self.operating_system = 'linux'
         else:
             self.operating_system = 'mac'
+        self.stop_words = set(stopwords.words('english'))
 
     def load_dataset(self, name):
         if name == 'vanessa':
@@ -109,7 +110,15 @@ class BookClassification(object):
         for text in texts:
             sequences.append(self.get_sequence(text, word_index))
         return sequences
-    
+   
+    def get_stop_words(self, texts, index_word):
+        all_words = [] 
+        for text in texts:
+            all_words.extend(list(set(text)))
+        commom_words = set([w for w in all_words if index_word[w].lower() in self.stop_words])
+        result = {word: index for index, word in enumerate(commom_words)}
+        return result
+            
     def get_common_words(self, texts): 
         commom_words = texts[0]
         for index, i in enumerate(texts):
@@ -163,6 +172,8 @@ class BookClassification(object):
             selected = self.get_sequences(selected, word_index)
         if self.feature_selection == 'common_words':
             words_features = self.get_common_words(selected)
+        elif self.feature_selection == 'stop_words':
+            words_features = self.get_stop_words(selected, index_word)
         else:
             words_features = self.get_top_words(selected)
 
@@ -274,14 +285,14 @@ class BookClassification(object):
         print('\n\n')
         for i in range(self.number_iterations):
             print('Init of iteration ' + str(i+1) + ' .......')
-            limiar_scores, limiar_sds = self.get_corpus_scores(segmented_corpus, classes, dict_categories, model, number_books)
+            limiar_scores, limiar_sds = self.get_corpus_scores_g2v(segmented_corpus, classes, dict_categories, model, number_books)
             for index, (score, sd) in enumerate(zip(limiar_scores, limiar_sds)):
                 iteration_score_container[index].append(score)
                 iteration_sd_container[index].append(sd)
             print('End of iteration ' + str(i + 1) + ' .......')
             print('\n')
 
-        print('\nFinal results:')
+        print('\nFinal results:', size)
         file_result = open(self.output_file, 'w')
 
         for index, (it_score, it_sd) in enumerate(zip(iteration_score_container, iteration_sd_container)):
@@ -294,7 +305,6 @@ class BookClassification(object):
             str_result = join_lists(it_score, it_sd)
             file_result.write(str_result)
             print(str_result)
-            print()
         file_result.close()
         shutil.rmtree(self.path)
     
@@ -320,7 +330,7 @@ class BookClassification(object):
                 obj = network.CNetwork(sequenced, model, index_word, self.embedding_percentages, self.path)
                 cNetworks = obj.create_networks()
                 for dim, net in enumerate(cNetworks):
-                    features = obj.get_network_global_measures(net)
+                    features = obj.get_network_global_measures(net, ["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3"])
                     df_global.loc[str(index) + "_" + str(dim), df_global.columns != 'i_percentage'] = features
                     df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
             for dim in range(dimensions):
@@ -334,9 +344,10 @@ class BookClassification(object):
 
 if __name__ == '__main__':
     dataset = '13authors' # 'vanessa' 'brown' 'stanisz'
-    size = 50000
+    sizes = [1200, 1500, 1800, 2100, 5000, 10000, 20000, 30000]
     feat_sel = 'common_words' # top_50  common_words
-    iterations = 4
-    obj = BookClassification(dataset=dataset, text_partition=size, feature_selection=feat_sel, sampling=iterations)
-    obj.classification_analysis()
+    iterations = 10
+    for size in sizes:
+        obj = BookClassification(dataset=dataset, text_partition=size, feature_selection=feat_sel, sampling=iterations)
+        obj.classification_analysis()
 

@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from utils.text_processing import partition_text
 
 def split_stratified_into_train_val_test(df_input, stratify_colname='y',
                                          frac_train=0.6, frac_val=0.15, frac_test=0.25,
@@ -64,16 +65,31 @@ def split_stratified_into_train_val_test(df_input, stratify_colname='y',
 
 RANDOM_SEED = 20
 dataset_path = "datasetsv2/"
-name_dataset = "books_authorship_english"
+name_dataset = "dataset_1"
+step = 30000
+length_cut = 30000
+random_flag = True
+
+
 
 data = pd.read_csv(dataset_path + name_dataset +".csv") 
-df_train, df_val, df_test = split_stratified_into_train_val_test(data, stratify_colname='label', frac_train=0.60, frac_val=0.20, frac_test=0.20, random_state=RANDOM_SEED)
 
-print(df_train.label.value_counts())
-print(df_val.label.value_counts())
-print(df_test.label.value_counts())
-df_train.to_csv(dataset_path + "df_train_"+name_dataset+".csv", index=False)
-df_val.to_csv(dataset_path + "df_val_"+name_dataset+".csv", index=False)
-df_test.to_csv(dataset_path + "df_test_"+name_dataset+".csv", index=False)
+def divide_dataset(texts, step, length_cut, random_flag, random_seed):
+	min_len_book = min([len(i.split()) for i in texts])
+	print(min_len_book)
 
+	df_train, df_val, df_test = split_stratified_into_train_val_test(data, stratify_colname='label', frac_train=0.60, frac_val=0.20, frac_test=0.20, random_state=RANDOM_SEED)
+	df_train_par=partition_text(df_train, step, length_cut, min_len_book, random_flag)
+	df_val_par=partition_text(df_val, step, length_cut, min_len_book, random_flag)
+	df_test_par=partition_text(df_test, step, length_cut, min_len_book, random_flag)
+
+	print(df_train_par.label.value_counts())
+	print(df_val_par.label.value_counts())
+	print(df_test_par.label.value_counts())
+	#df_train.to_csv(dataset_path + "df_train_"+name_dataset+".csv", index=False)
+	#df_val.to_csv(dataset_path + "df_val_"+name_dataset+".csv", index=False)
+	#df_test.to_csv(dataset_path + "df_test_"+name_dataset+".csv", index=False)
+	return df_train_par, df_val_par, df_test_par
+
+divide_dataset(data, step, length_cut, random_flag, RANDOM_SEED)
 

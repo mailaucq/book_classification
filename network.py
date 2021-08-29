@@ -355,10 +355,9 @@ class CNetwork(object):
                 found_features.append(word)
         measures = []
         if measures_names is None:
-        	measures_names = ["btw"]#["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3"]
+        	measures_names = ["accs_h3"]#["dgr_n", "btw", "cc", "sp", "accs_h2", "accs_h3"]
         if "dgr_n" in measures_names:
-                dgr_n = network.knn(found_features) #pr = network.pagerank(found_features)
-                dgr_n = np.average(dgr_n)
+                dgr_n, _ = network.knn(found_features) #pr = network.pagerank(found_features)
                 measures.append(dgr_n)
         if "btw" in measures_names:
                 btw = network.betweenness(found_features)
@@ -388,8 +387,8 @@ class CNetwork(object):
         #measures = [dgr, pr, btw, cc, sp, bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
         #measures = [bSym2, mSym2, bSym3, mSym3, accs_h2, accs_h3]
         network_features = []
+        
         for measure in measures:
-        	print("MEASURE",measure)
         	feature = [0.0 for _ in range(len(features))]
         	for word, value in zip(found_features, measure):
         		feature[features[word]] = value
