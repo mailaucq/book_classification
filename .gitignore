@@ -1,0 +1,8 @@
+results/
+auxiliar_folder/
+dataset/
+features/
+*.csv
+**/*.csv
+datasetsv2/
+

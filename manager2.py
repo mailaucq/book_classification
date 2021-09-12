@@ -39,6 +39,7 @@ def graph2vec(path, operating_system, networks):
     os.system(path_command)
     g2v = pd.read_csv(extra_file, sep=',', lineterminator='\n')
     g2v.set_index("type")
+    g2v.drop("type",axis="columns", inplace=True)
     all_network_features = [g2v.loc[i].values for i, _ in enumerate(networks)]
     print("graph2vec")
     return all_network_features
@@ -341,12 +342,47 @@ class BookClassification(object):
                 print("variability", variability)
         df_variability.to_csv(self.output_file + "variability")
         
+    def variability_analysis_g2v(self, model=None):
+        dimensions = len(self.embedding_percentages) + 1
+        columns=["dim_"+str(i) for i in range(513)]
+        columns[512] = "i_percentage"#["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]
+        corpus, segmented_corpus, labels = self.get_corpus()
+        word_index, index_word = self.get_word_index(corpus)
+        print(len(columns))
+        print('Training word embeddings ....')
+        objEmb = embeddings.WordEmbeddings(corpus, self.embeddings)
+        model = objEmb.get_embedding_model()
+ 
+        index_books = [str(num_book) + "_" + str(dim) for num_book in range(len(labels))  for dim in range(dimensions)]
+        df_variability = pd.DataFrame(columns=columns, index=index_books) 
+        for num_book, (partitions, label) in enumerate(zip(segmented_corpus, labels)):
+            index_partitions = [str(partition) + "_" + str(dim) for partition in range(len(partitions)) for dim in range(dimensions)]
+            df_global = pd.DataFrame(columns=columns, index=index_partitions)
+            
+            for index, partition in enumerate(partitions):
+                sequenced = self.get_sequence(partition, word_index)
+            	 
+                obj = network.CNetwork(sequenced, model, index_word, self.embedding_percentages, self.path)
+                cNetworks = obj.create_networks()
+                for dim, net in enumerate(cNetworks):
+                    features = np.array(graph2vec(self.path, self.operating_system, [net]))[0]
+                    print(features.shape,features,len(columns),"shapeeee")
+                    df_global.loc[str(index) + "_" + str(dim), df_global.columns != 'i_percentage'] = features
+                    df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
+            for dim in range(dimensions):
+                #variability = np.sqrt(df_global[df_global["i_percentage"]==dim].pow(2).mean()/df_global[df_global["i_percentage"]==dim].mean()**2 - 1)
+                variability = df_global[df_global["i_percentage"] == dim].std(axis=0)/df_global[df_global["i_percentage"] == dim].mean(axis=0)
+                df_variability.loc[str(num_book) + "_" + str(dim)] = variability
+                df_variability.loc[str(num_book) + "_" + str(dim)]["i_percentage"] = dim
+                print("variability", variability)
+        df_variability.to_csv(self.output_file + "variability")
+        
 
 if __name__ == '__main__':
     dataset = '13authors' # 'vanessa' 'brown' 'stanisz'
-    sizes = [1200, 1500, 1800, 2100, 5000, 10000, 20000, 30000]
+    sizes = [10000]
     feat_sel = 'common_words' # top_50  common_words
-    iterations = 10
+    iterations = 4
     for size in sizes:
         obj = BookClassification(dataset=dataset, text_partition=size, feature_selection=feat_sel, sampling=iterations)
         obj.classification_analysis()

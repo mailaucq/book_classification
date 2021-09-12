@@ -1,0 +1,3 @@
+[submodule "struc2vec"]
+	path = struc2vec
+	url = https://github.com/leoribeiro/struc2vec.git

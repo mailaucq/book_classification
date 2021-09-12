@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from utils.text_processing import partition_text
+import random
+
 
 def split_stratified_into_train_val_test(df_input, stratify_colname='y',
                                          frac_train=0.6, frac_val=0.15, frac_test=0.25,
@@ -63,11 +64,39 @@ def split_stratified_into_train_val_test(df_input, stratify_colname='y',
 
     return df_train, df_val, df_test
 
+
+def partition_text(df, step, length_cut, min_len_book, random_flag):
+  df_par = pd.DataFrame(columns = df.columns)
+  corpus = df["text"].copy()
+  segmented_corpus = []
+   
+  for book in corpus:
+    partitions = int(round(min_len_book/step, 2) + 0.5)
+    segments = [book[int(i*step):int(i*step+length_cut)]+book[0:int(i*step+length_cut-min_len_book)] if i*step+length_cut>min_len_book else book[int(i*step):int(i*step+length_cut)] for i in range(partitions)]
+    segmented_corpus.append(segments)
+
+  for (i, row), partitions in zip(df.iterrows(),segmented_corpus):
+    if random_flag:
+      random_index = random.randint(0, len(partitions) - 1)
+      text = " ".join(partitions[random_index])
+      row_tmp = row.copy()
+      row_tmp["text"] = text
+      df_par = df_par.append(row_tmp, ignore_index=True)
+    else:
+      for p in partitions:
+        text = " ".join(p)
+        row_tmp = row.copy()
+        row_tmp["text"] = text
+        df_par = df_par.append(row_tmp, ignore_index=True)
+  df_par.tail()
+  return df_par
+  
+  
 RANDOM_SEED = 20
 dataset_path = "datasetsv2/"
 name_dataset = "dataset_1"
-step = 30000
-length_cut = 30000
+step = 1000
+length_cut = 1000
 random_flag = True
 
 
@@ -86,10 +115,10 @@ def divide_dataset(texts, step, length_cut, random_flag, random_seed):
 	print(df_train_par.label.value_counts())
 	print(df_val_par.label.value_counts())
 	print(df_test_par.label.value_counts())
-	#df_train.to_csv(dataset_path + "df_train_"+name_dataset+".csv", index=False)
-	#df_val.to_csv(dataset_path + "df_val_"+name_dataset+".csv", index=False)
-	#df_test.to_csv(dataset_path + "df_test_"+name_dataset+".csv", index=False)
+	df_train.to_csv(dataset_path + "df_train_" + name_dataset + "_" + str(length_cut) + "_" + str(random_flag) + ".csv", index=False)
+	df_val.to_csv(dataset_path + "df_val_" + name_dataset + "_" + str(length_cut) + "_" + str(random_flag) + ".csv", index=False)
+	df_test.to_csv(dataset_path + "df_test_" + name_dataset + "_" + str(length_cut) + "_" + str(random_flag) + ".csv", index=False)
 	return df_train_par, df_val_par, df_test_par
 
-divide_dataset(data, step, length_cut, random_flag, RANDOM_SEED)
+divide_dataset(list(data["text"]), step, length_cut, random_flag, RANDOM_SEED)
 

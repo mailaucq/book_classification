@@ -13,6 +13,8 @@ def get_word_index(texts, tokenized=False):
 	index_word = {}
 	count = 0
 	for text in texts:
+	    print(text)
+	    print(tokenized)
 	    words = text if tokenized else word_tokenize(text)
 	    for word in list(set(words)):
 	        if word not in word_index:
@@ -37,6 +39,14 @@ def get_sequences(texts, word_index, tokenized=False):
 	    sequences.append(get_sequence(words, word_index))
 	return sequences
 
+def get_stop_words(self, texts, index_word):
+        all_words = [] 
+        for text in texts:
+            all_words.extend(list(set(text)))
+        commom_words = set([w for w in all_words if index_word[w].lower() in stop_words])
+        result = {word: index for index, word in enumerate(commom_words)}
+        return result
+    
 def get_common_words(texts): 
 	commom_words = texts[0]
 	for index, i in enumerate(texts):
@@ -125,7 +135,7 @@ def get_corpus(texts, text_partition):
   return corpus, segmented_corpus
 
 # get random partitions of book	
-def get_random_corpus(segmented_corpus, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
+def get_random_corpus(segmented_corpus, tokenized=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
   selected = []
   for partitions in segmented_corpus:
     if number_iterations == 1:
@@ -134,10 +144,12 @@ def get_random_corpus(segmented_corpus, mode_sequences=True, number_iterations=4
       random_index = random.randint(0, len(partitions) - 1)
     selected.append(partitions[random_index])
   if mode_sequences:
-    word_index, index_word = get_word_index(selected)
-    selected = get_sequences(selected, word_index)
+    word_index, index_word = get_word_index(selected,tokenized=tokenized)
+    selected = get_sequences(selected, word_index,tokenized=tokenized)
   if feature_selection == 'common_words':
     words_features = get_common_words(selected)
+  elif feature_selection == 'stop_words':
+    words_features = get_stop_words(selected, index_word)
   else:
     words_features = get_top_words(selected, top_number=feature_selection)
 
