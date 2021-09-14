@@ -13,8 +13,6 @@ def get_word_index(texts, tokenized=False):
 	index_word = {}
 	count = 0
 	for text in texts:
-	    print(text)
-	    print(tokenized)
 	    words = text if tokenized else word_tokenize(text)
 	    for word in list(set(words)):
 	        if word not in word_index:
@@ -39,18 +37,20 @@ def get_sequences(texts, word_index, tokenized=False):
 	    sequences.append(get_sequence(words, word_index))
 	return sequences
 
-def get_stop_words(self, texts, index_word):
-        all_words = [] 
-        for text in texts:
-            all_words.extend(list(set(text)))
-        commom_words = set([w for w in all_words if index_word[w].lower() in stop_words])
-        result = {word: index for index, word in enumerate(commom_words)}
-        return result
+def get_stop_words(texts):
+	commom_words = [w.lower() for w in texts[0]]
+	for index, i in enumerate(texts):
+	    text = [w.lower() for w in i]
+	    commom_words = list(set(commom_words) & set(text))
+	commom_words = [w for w in commom_words if w in stop_words]
+	result = {word: index for index, word in enumerate(commom_words)}
+	return result
     
 def get_common_words(texts): 
-	commom_words = texts[0]
+	commom_words = [w.lower() for w in texts[0]]
 	for index, i in enumerate(texts):
-	    commom_words = list(set(commom_words) & set(i))
+	    text = [w.lower() for w in i]
+	    commom_words = list(set(commom_words) & set(text))
 	result = {word: index for index, word in enumerate(commom_words)}
 	return result
 
@@ -143,18 +143,17 @@ def get_random_corpus(segmented_corpus, tokenized=False, mode_sequences=True, nu
     else:
       random_index = random.randint(0, len(partitions) - 1)
     selected.append(partitions[random_index])
-  if mode_sequences:
-    word_index, index_word = get_word_index(selected,tokenized=tokenized)
-    selected = get_sequences(selected, word_index,tokenized=tokenized)
+  word_index, index_word = get_word_index(selected,tokenized=tokenized)
   if feature_selection == 'common_words':
     words_features = get_common_words(selected)
   elif feature_selection == 'stop_words':
-    words_features = get_stop_words(selected, index_word)
+    words_features = get_stop_words(selected)
   else:
     words_features = get_top_words(selected, top_number=feature_selection)
-
   if len(words_features) == 0:
     words_features = get_top_words(selected)
+  if mode_sequences:
+    selected = get_sequences(selected, word_index,tokenized=tokenized)
   return selected, words_features, word_index, index_word
 	
 
