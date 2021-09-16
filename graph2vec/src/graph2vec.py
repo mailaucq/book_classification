@@ -63,7 +63,7 @@ def dataset_reader(path):
     name = path.strip(".json").split("/")[-1]
     data = json.load(open(path))
     graph = nx.from_edgelist(data["edges"])
-
+    print("GRAPHHHHH",graph)
     if "features" in data.keys():
         features = data["features"]
     else:

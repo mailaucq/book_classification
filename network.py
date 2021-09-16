@@ -344,15 +344,15 @@ class CNetwork(object):
         return result
 
         
-    def get_network_measures(self, network, features, measures_names=None):
+    def get_network_measures(self, network, features, word_index, measures_names=None):
         found_features = []
         for word in features:
             try:
-                node = network.vs.find(name=word)
+                node = network.vs.find(name=word_index[word])
             except:
                 node = None
             if node is not None:
-                found_features.append(word)
+                found_features.append(word_index[word])
         measures = []
         if measures_names is None:
         	measures_names = ["accs_h3"]#["dgr_n", "btw", "cc", "sp", "accs_h2", "accs_h3"]
@@ -391,7 +391,7 @@ class CNetwork(object):
         for measure in measures:
         	feature = [0.0 for _ in range(len(features))]
         	for word, value in zip(found_features, measure):
-        		feature[features[word]] = value
+        		feature[features[self.index_word[word]]] = value
         	network_features.extend(feature)
         network_features = np.array(network_features)
         

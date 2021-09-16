@@ -5,15 +5,18 @@ import re
 import random
 import string
 from collections import Counter
+from nltk.stem import WordNetLemmatizer
+
 
 stop_words = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
+random.seed(10)
 
-def get_word_index(texts, tokenized=False):
+def get_word_index(texts):
 	word_index = {}
 	index_word = {}
 	count = 0
-	for text in texts:
-	    words = text if tokenized else word_tokenize(text)
+	for words in texts:
 	    for word in list(set(words)):
 	        if word not in word_index:
                     word_index[word] = str(count)
@@ -30,10 +33,9 @@ def get_sequence(words, word_index):
 	    	continue
 	return sequence
 
-def get_sequences(texts, word_index, tokenized=False):
+def get_sequences(texts, word_index):
 	sequences = []
-	for text in texts:
-	    words = text if tokenized else word_tokenize(text)	
+	for words in texts:	
 	    sequences.append(get_sequence(words, word_index))
 	return sequences
 
@@ -117,11 +119,11 @@ def partition_text(df, step, length_cut, min_len_book, random_flag):
   return df_par
   
 def get_min_len_corpus(texts):
-  corpus = [len(i.split()) for i in texts]
+  corpus = [len(word_tokenize(text)) for text in texts]
   return min(corpus)
   
 def get_corpus(texts, text_partition):
-  corpus = [i.split() for i in texts]
+  corpus = [word_tokenize(text) for text in texts]
   #corpus = [i[:self.text_partition] for i in corpus]
   min_size = text_partition
   size_partitions = []
@@ -135,7 +137,7 @@ def get_corpus(texts, text_partition):
   return corpus, segmented_corpus
 
 # get random partitions of book	
-def get_random_corpus(segmented_corpus, tokenized=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
+def get_random_corpus(segmented_corpus, remove_punctuation=False, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
   selected = []
   for partitions in segmented_corpus:
     if number_iterations == 1:
@@ -143,7 +145,11 @@ def get_random_corpus(segmented_corpus, tokenized=False, mode_sequences=True, nu
     else:
       random_index = random.randint(0, len(partitions) - 1)
     selected.append(partitions[random_index])
-  word_index, index_word = get_word_index(selected,tokenized=tokenized)
+  if remove_punctuation:
+    selected = [[w for w in sel if w not in string.punctuation] for sel in selected]
+  if lemmatization_flag:
+    selected = [[lemmatizer.lemmatize(w) for w in sel] for sel in selected]  
+  word_index, index_word = get_word_index(selected)
   if feature_selection == 'common_words':
     words_features = get_common_words(selected)
   elif feature_selection == 'stop_words':
@@ -153,7 +159,7 @@ def get_random_corpus(segmented_corpus, tokenized=False, mode_sequences=True, nu
   if len(words_features) == 0:
     words_features = get_top_words(selected)
   if mode_sequences:
-    selected = get_sequences(selected, word_index,tokenized=tokenized)
+    selected = get_sequences(selected, word_index)
   return selected, words_features, word_index, index_word
 	
 
