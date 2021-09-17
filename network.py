@@ -44,14 +44,14 @@ class CNetwork(object):
         else:
             self.operating_system = 'mac'
 
-    def create_network(self):
+    def create_network(self, directed=False):
         edges = []
         string_bigrams = bigrams(self.document)
         for i in string_bigrams:
             edges.append((i[0], i[1]))
             #edges.append((self.word_dict[i[0]], self.word_dict[i[1]]))
 
-        network = Graph()
+        network = Graph(directed=directed)
         network.add_vertices(self.words)
         #network.add_vertices(len(self.words))
         network.add_edges(edges)
