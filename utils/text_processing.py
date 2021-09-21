@@ -92,31 +92,49 @@ def pre_process_text(text, remove_stop_words=False, only_stop_words=False, remov
         filtered_sentence = tokens
     return filtered_sentence
 
-def partition_text(df, step, length_cut, min_len_book, random_flag):
-  df_par = pd.DataFrame(columns = df.columns)
-  corpus = df["text"].copy()
+def partition_text(texts, labels, length_cut, min_len_book, random_flag=1, step=0):
+  step = length_cut if step <= 0 else step
+  #df_par = pd.DataFrame(columns = df.columns)
+  #texts = df["text"].copy()
+  corpus = [word_tokenize(text) for text in texts]
   segmented_corpus = []
-   
+  new_texts = []
+  new_labels = []
+  partitions = int(round(min_len_book/step, 2) + 0.5)
+  print("Max partitions: ", partitions)
   for book in corpus:
-    partitions = int(round(min_len_book/step, 2) + 0.5)
     segments = [book[int(i*step):int(i*step+length_cut)]+book[0:int(i*step+length_cut-min_len_book)] if i*step+length_cut>min_len_book else book[int(i*step):int(i*step+length_cut)] for i in range(partitions)]
     segmented_corpus.append(segments)
 
-  for (i, row), partitions in zip(df.iterrows(),segmented_corpus):
-    if random_flag:
-      random_index = random.randint(0, len(partitions) - 1)
-      text = " ".join(partitions[random_index])
-      row_tmp = row.copy()
-      row_tmp["text"] = text
-      df_par = df_par.append(row_tmp, ignore_index=True)
+  for label, parts in zip(labels, segmented_corpus):
+    if random_flag < partitions:
+      for i in range(random_flag):
+      	random_index = random.randint(0, len(parts) - 1)
+      	new_texts.append(parts[random_index])
+      	new_labels.append(label)
     else:
-      for p in partitions:
-        text = " ".join(p)
-        row_tmp = row.copy()
-        row_tmp["text"] = text
-        df_par = df_par.append(row_tmp, ignore_index=True)
-  df_par.tail()
-  return df_par
+      for p in parts:
+        new_texts.append(p)
+        new_labels.append(label)
+  return corpus, new_texts, new_labels
+
+def get_process_corpus(selected, remove_punctuation=False, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
+  if remove_punctuation:
+    selected = [[w for w in sel if w not in string.punctuation] for sel in selected]
+  if lemmatization_flag:
+    selected = [[lemmatizer.lemmatize(w) for w in sel] for sel in selected]  
+  word_index, index_word = get_word_index(selected)
+  if feature_selection == 'common_words':
+    words_features = get_common_words(selected)
+  elif feature_selection == 'stop_words':
+    words_features = get_stop_words(selected)
+  else:
+    words_features = get_top_words(selected, top_number=feature_selection)
+  if len(words_features) == 0:
+    words_features = get_top_words(selected)
+  if mode_sequences:
+    selected = get_sequences(selected, word_index)
+  return selected, words_features, word_index, index_word
   
 def get_min_len_corpus(texts):
   corpus = [len(word_tokenize(text)) for text in texts]

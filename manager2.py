@@ -8,7 +8,9 @@ import os
 from sklearn.preprocessing import StandardScaler
 import classifier
 import shutil
-from utils import igraph2json
+from process_graph2vec import get_graph2vec
+from process_struc2vec import get_struc2vec
+from process_motifs import get_motifs
 import platform
 from nltk.corpus import stopwords
 
@@ -24,41 +26,23 @@ def join_lists(l1, l2):
     return str_res
 
 
-def graph2vec(path, operating_system, networks):
-    in_network = path + 'dataset/'
-    extra_file = path + 'features/nci1.csv'
-    try: 
-        os.mkdir(in_network)
-        os.mkdir(path + 'features/')
-    except:
-        print("Existe")
-    for i, netw in enumerate(networks):
-        igraph2json.igraph2json1(netw, in_network + str(i) + ".json")
-    if operating_system == 'linux':
-        path_command = 'python ./graph2vec/src/graph2vec.py --input-path ' + in_network + ' --output-path ' + extra_file + ' --dimensions ' + str(512)
-    os.system(path_command)
-    g2v = pd.read_csv(extra_file, sep=',', lineterminator='\n')
-    g2v.set_index("type")
-    g2v.drop("type",axis="columns", inplace=True)
-    all_network_features = [g2v.loc[i].values for i, _ in enumerate(networks)]
-    print("graph2vec")
-    return all_network_features
 
-
+    
 class BookClassification(object):
 
-    def __init__(self, dataset='vanessa', text_partition=1000, embeddings='w2v', feature_selection='common_words', sampling=1):
+    def __init__(self, dataset='vanessa', text_partition=1000, embeddings='w2v', model_emb="graph2vec", feature_selection='common_words', sampling=1):
         self.dataset = self.load_dataset(dataset)
         print('Dataset ' + dataset + ' loaded')
         self.dataset.info()
         print()
         self.text_partition = text_partition
         self.embeddings = embeddings
+        self.model_emb = model_emb
         self.feature_selection = feature_selection
         self.number_iterations = sampling
         self.embedding_percentages = [index for index in range(1,21)]
          # [1, 5, 10, 15, 20]
-        name = dataset + '_' + str(text_partition) + '_' + feature_selection +  '_' + str(self.number_iterations) 
+        name = dataset + '_' + str(text_partition) + '_' + feature_selection +  '_' + str(self.number_iterations) + '_' + model_emb
         self.path = 'auxiliar_folder/' + name   + '/'
         self.output_file = 'results/' + name + '.txt'
         try: 
@@ -217,7 +201,7 @@ class BookClassification(object):
             print()
         return limiar_scores, limiar_sds
     
-    def get_corpus_scores_g2v(self, segmented_corpus, classes, dict_categories, model, number_books):
+    def get_corpus_scores_emb(self, segmented_corpus, classes, dict_categories, model, number_books):
         selected_corpus, words_features, word_index, index_word = self.get_random_corpus(segmented_corpus, mode_sequences=True)
         print('Word features: ',len(words_features), words_features)
         labels = []
@@ -241,7 +225,13 @@ class BookClassification(object):
         limiar_sds = []
         for limiar_index, limiar_features in enumerate(all_features_container):
             #limiar_features = limiar_features)
-            limiar_features = np.array(graph2vec(self.path, self.operating_system, limiar_features))
+            if self.model_emb == "graph2vec":
+            	limiar_features = np.array(get_graph2vec(self.operating_system, limiar_features, self.text_partition, limiar_index))
+            elif self.model_emb == "struc2vec":
+            	limiar_features = np.array(get_struc2vec(self.operating_system, limiar_features, self.text_partition, limiar_index, words_features, index_word))
+            elif self.model_emb == "motifs":
+            	limiar_features = np.array(get_motifs(self.operating_system, limiar_features, self.text_partition, limiar_index))
+            		    
             #limiar_features = scaler.fit_transform(limiar_features)
             print(limiar_index, limiar_features.shape)
             obj = classifier.Classification(limiar_features, labels, number_books)
@@ -251,13 +241,6 @@ class BookClassification(object):
             print(scores, sds)
             print()
         return limiar_scores, limiar_sds
-        """limiar_scores = []
-        limiar_sds = []
-        obj = classifier.Classification(all_network_features, labels, number_books)
-        scores, sds = obj.classification()
-        limiar_scores.append(scores)
-        limiar_sds.append(sds)
-        print(scores, sds)"""
 
     def classification_analysis(self):
         corpus, segmented_corpus, labels = self.get_corpus()
@@ -286,7 +269,7 @@ class BookClassification(object):
         print('\n\n')
         for i in range(self.number_iterations):
             print('Init of iteration ' + str(i+1) + ' .......')
-            limiar_scores, limiar_sds = self.get_corpus_scores_g2v(segmented_corpus, classes, dict_categories, model, number_books)
+            limiar_scores, limiar_sds = self.get_corpus_scores_emb(segmented_corpus, classes, dict_categories, model, number_books)
             for index, (score, sd) in enumerate(zip(limiar_scores, limiar_sds)):
                 iteration_score_container[index].append(score)
                 iteration_sd_container[index].append(sd)
@@ -304,7 +287,7 @@ class BookClassification(object):
             it_score = [round(i,2) for i in it_score]
             it_sd = [round(i, 2) for i in it_sd]
             str_result = join_lists(it_score, it_sd)
-            file_result.write(str_result)
+            file_result.write(str_result+"\n")
             print(str_result)
         file_result.close()
         shutil.rmtree(self.path)
@@ -380,10 +363,11 @@ class BookClassification(object):
 
 if __name__ == '__main__':
     dataset = '13authors' # 'vanessa' 'brown' 'stanisz'
-    sizes = [10000]
+    sizes = [300,400,500,600,700,800,900,1000]
     feat_sel = 'common_words' # top_50  common_words
+    model_emb = "struc2vec"
     iterations = 4
     for size in sizes:
-        obj = BookClassification(dataset=dataset, text_partition=size, feature_selection=feat_sel, sampling=iterations)
+        obj = BookClassification(dataset=dataset, text_partition=size, model_emb=model_emb, feature_selection=feat_sel, sampling=iterations)
         obj.classification_analysis()
 

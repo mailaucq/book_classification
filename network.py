@@ -124,8 +124,13 @@ class CNetwork(object):
         #words = list(set(self.document))
         matrix = []
         for word in self.words:
-            embedding = self.model[self.index_word[word]]
+            try:
+            	embedding = self.model[self.index_word[word]]
+            except:
+            	print("not found", self.index_word[word])
+            	embedding = np.zeros(300)
             matrix.append(embedding)
+            
 
         matrix = np.array(matrix)
         similarity_matrix = 1 - pairwise_distances(matrix, metric='cosine')
@@ -156,8 +161,8 @@ class CNetwork(object):
             networks.append(new_network)
         return networks
 
-    def create_networks(self):
-        network = self.create_network()
+    def create_networks(self, directed=False):
+        network = self.create_network(directed=directed)
         networks = self.add_embeddings2(network)
         networks.insert(0, network)
 
