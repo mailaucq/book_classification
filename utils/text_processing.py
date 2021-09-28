@@ -130,8 +130,8 @@ def get_process_corpus(selected, remove_punctuation=False, lemmatization_flag=Fa
     words_features = get_stop_words(selected)
   else:
     words_features = get_top_words(selected, top_number=feature_selection)
-  if len(words_features) == 0:
-    words_features = get_top_words(selected)
+  #if len(words_features) == 0:
+  #  words_features = get_top_words(selected)
   if mode_sequences:
     selected = get_sequences(selected, word_index)
   return selected, words_features, word_index, index_word

@@ -5,4 +5,6 @@ features/
 *.csv
 **/*.csv
 datasetsv2/
-
+graph2vec/
+datasetsv2/
+results_struct2vec/
