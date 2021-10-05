@@ -71,9 +71,10 @@ def get_top_words(texts, top_number="top_1"):
 	    most_commom[feat[0]] = index
 	return most_commom
 
-def remove_puntuaction(text):
-    text = text.translate(text.maketrans('', '', string.punctuation))
-    return text
+def remove_punctuation(texts):
+    punc = string.punctuation+"''``"
+    texts = [[w for w in text if w not in punc] for text in texts]
+    return texts
     
 def pre_process_text(text, remove_stop_words=False, only_stop_words=False, remove_puntuaction_flag=False):
     if type(text) == list:
@@ -118,9 +119,9 @@ def partition_text(texts, labels, length_cut, min_len_book, random_flag=1, step=
         new_labels.append(label)
   return corpus, new_texts, new_labels
 
-def get_process_corpus(selected, remove_punctuation=False, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
-  if remove_punctuation:
-    selected = [[w for w in sel if w not in string.punctuation] for sel in selected]
+def get_process_corpus(selected, remove_punctuation_flag=True, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
+  if remove_punctuation_flag:
+    selected = remove_punctuation(selected)
   if lemmatization_flag:
     selected = [[lemmatizer.lemmatize(w) for w in sel] for sel in selected]  
   word_index, index_word = get_word_index(selected)
@@ -155,7 +156,7 @@ def get_corpus(texts, text_partition):
   return corpus, segmented_corpus
 
 # get random partitions of book	
-def get_random_corpus(segmented_corpus, remove_punctuation=False, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
+def get_random_corpus(segmented_corpus, remove_punctuation_flag=False, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
   selected = []
   for partitions in segmented_corpus:
     if number_iterations == 1:
@@ -163,8 +164,8 @@ def get_random_corpus(segmented_corpus, remove_punctuation=False, lemmatization_
     else:
       random_index = random.randint(0, len(partitions) - 1)
     selected.append(partitions[random_index])
-  if remove_punctuation:
-    selected = [[w for w in sel if w not in string.punctuation] for sel in selected]
+  if remove_punctuation_flag:
+    selected = remove_punctuation(selected)
   if lemmatization_flag:
     selected = [[lemmatizer.lemmatize(w) for w in sel] for sel in selected]  
   word_index, index_word = get_word_index(selected)

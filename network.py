@@ -404,6 +404,64 @@ class CNetwork(object):
         print('Len features:', len(network_features))
         print(network_features)
         return network_features
+        
+    def get_global_partial_network_measures(self, network, features, word_index, measures_names=None):
+        found_features = []
+        for word in features:
+            try:
+                node = network.vs.find(name=word_index[word])
+            except:
+                node = None
+            if node is not None:
+                found_features.append(word_index[word])
+        measures = []
+        if measures_names is None:
+                measures_names = ["accs_h3"]#["dgr_n", "btw", "cc", "sp", "accs_h2", "accs_h3"]
+        if "dgr_n" in measures_names:
+                dgr_n, _ = network.knn(found_features) #pr = network.pagerank(found_features)
+                dgr_n = np.average(dgr_n)
+                measures.append(dgr_n)
+        if "btw" in measures_names:
+                btw = network.betweenness(found_features)
+                btw = np.average([0 if np.isnan(b) else b for b in btw])
+                measures.append(btw)
+        if "cc" in measures_names:
+                cc = network.transitivity_local_undirected(found_features)
+                cc = np.average([0 if np.isnan(c) else c for c in cc])
+                measures.append(cc)
+        if "sp" in measures_names:
+                sp1 = self.shortest_path(network, found_features)
+                sp = np.average([0 if np.isnan(s) else s for s in sp1])
+                measures.append(sp)
+        if "bSym2" in measures_names:
+                symmetries = self.symmetry(network, found_features)
+                bSym2 = list(symmetries['bSym2'])
+                bSym2 = np.average([0 if np.isnan(a) else a for a in bSym2])
+                measures.append(bSym2)
+        if "mSym2" in measures_names:
+                mSym2 = list(symmetries['mSym2'])
+                mSym2 = np.average([0 if np.isnan(a) else a for a in mSym2])
+                measures.append(mSym2)
+        if "bSym3" in measures_names:
+                bSym3 = list(symmetries['bSym3'])
+                bSym3 = np.average([0 if np.isnan(a) else a for a in bSym3])
+                measures.append(bSym3)
+        if "mSym3" in measures_names:
+                mSym3 = list(symmetries['mSym3'])
+                mSym3 = np.average([0 if np.isnan(a) else a for a in mSym3])
+                measures.append(mSym3)
+        if "accs_h2" in measures_names:
+                accs_h2 = list(self.accessibility(network, 2, found_features))
+                accs_h2 = np.average([0 if np.isnan(a) else a for a in accs_h2])
+                measures.append(accs_h2)
+        if "accs_h3" in measures_names:
+                accs_h3 = list(self.accessibility(network, 3, found_features))
+                accs_h3 = np.average([0 if np.isnan(a) else a for a in accs_h3])
+                measures.append(accs_h3)
+        network_features_arr = np.array(measures)
+        network_features_arr[np.isnan(network_features_arr)] = 0
+        print('Len features:', len(network_features_arr))
+        return network_features_arr
 
     def get_network_global_measures(self, network, measures):
         network_features = []

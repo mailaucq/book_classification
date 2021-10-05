@@ -12,5 +12,5 @@ if __name__ == '__main__':
     for dataset in datasets:
     	for size in sizes:
     		obj = BookClassification(dataset=dataset, text_partition=size, feature_selection=feat_sel, sampling=iterations)
-	    	obj.variability_analysis()
+	    	obj.variability_analysis_global_partial()
 

@@ -13,6 +13,7 @@ from process_struc2vec import get_struc2vec
 from process_motifs import get_motifs
 import platform
 from nltk.corpus import stopwords
+from utils.text_processing import get_process_corpus
 
 #df = pd.read_csv('datasets/dataset_1.csv') # 8 authors - 5 books per author  # min 40mil words # vanessa paper
 #df3 = pd.read_csv('datasets/dataset_3.csv') # 8 authors - 6 books per author #min 30mil words # stanisz paper inf science
@@ -315,6 +316,39 @@ class BookClassification(object):
                 cNetworks = obj.create_networks()
                 for dim, net in enumerate(cNetworks):
                     features = obj.get_network_global_measures(net, ["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3"])
+                    df_global.loc[str(index) + "_" + str(dim), df_global.columns != 'i_percentage'] = features
+                    df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
+            for dim in range(dimensions):
+                #variability = np.sqrt(df_global[df_global["i_percentage"]==dim].pow(2).mean()/df_global[df_global["i_percentage"]==dim].mean()**2 - 1)
+                variability = df_global[df_global["i_percentage"] == dim].std(axis=0)/df_global[df_global["i_percentage"] == dim].mean(axis=0)
+                df_variability.loc[str(num_book) + "_" + str(dim)] = variability
+                df_variability.loc[str(num_book) + "_" + str(dim)]["i_percentage"] = dim
+                print("variability", variability)
+        df_variability.to_csv(self.output_file + "variability")
+    
+    def variability_analysis_global_partial(self, model=None):
+        dimensions = len(self.embedding_percentages) + 1
+        columns=["dgr_n", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]#["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]
+        corpus, segmented_corpus, labels = self.get_corpus()
+        #word_index, index_word = self.get_word_index(corpus)
+        
+        print('Training word embeddings ....')
+        objEmb = embeddings.WordEmbeddings(corpus, self.embeddings)
+        model = objEmb.get_embedding_model()
+ 
+        index_books = [str(num_book) + "_" + str(dim) for num_book in range(len(labels))  for dim in range(dimensions)]
+        df_variability = pd.DataFrame(columns=columns, index=index_books) 
+        for num_book, (partitions, label) in enumerate(zip(segmented_corpus, labels)):
+            index_partitions = [str(partition) + "_" + str(dim) for partition in range(len(partitions)) for dim in range(dimensions)]
+            df_global = pd.DataFrame(columns=columns, index=index_partitions)
+            selected, words_features, word_index, index_word = get_process_corpus(partitions, feature_selection = 'common_words')
+            for index, sequenced in enumerate(selected):
+                #sequenced = self.get_sequence(partition, word_index)
+            	 
+                obj = network.CNetwork(sequenced, model, index_word, self.embedding_percentages, self.path)
+                cNetworks = obj.create_networks()
+                for dim, net in enumerate(cNetworks):
+                    features = obj.get_global_partial_network_measures(net, words_features, word_index, ["dgr_n", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3"])
                     df_global.loc[str(index) + "_" + str(dim), df_global.columns != 'i_percentage'] = features
                     df_global.loc[str(index) + "_" + str(dim)]["i_percentage"] = dim
             for dim in range(dimensions):
