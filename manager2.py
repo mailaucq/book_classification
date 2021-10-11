@@ -362,7 +362,7 @@ class BookClassification(object):
     def variability_analysis_g2v(self, model=None):
         dimensions = len(self.embedding_percentages) + 1
         columns=["dim_"+str(i) for i in range(513)]
-        columns[512] = "i_percentage"#["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]
+        columns[512] = "i_percentage" #["dgr", "pr", "btw", "cc", "sp", "bSym2", "mSym2", "bSym3", "mSym3", "accs_h2", "accs_h3", "i_percentage"]
         corpus, segmented_corpus, labels = self.get_corpus()
         word_index, index_word = self.get_word_index(corpus)
         print(len(columns))

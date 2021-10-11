@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 
 
 dimensions = range(21)
-sizes = [100,200,300,900,1200,1500,1800,2100]
+sizes = [300,900,1200,1500,1800,2100]
 datasets = ["13authors"]#["stanisz", "brown", "vanessa"]
-measures = ["dgr_n", "btw", "cc", "sp", "sp_std", "accs_h2", "accs_h3"]
+measures = ["dgr_n", "btw", "cc", "sp", "accs_h2", "accs_h3"]
 measures_name = ["Average Neighbor Degree $<k_n>$", "Average Betweeness $<B>$", "Average Clustering Coeficient $<C>$", "Average Shortest Path Lenght $<l>$", r"Standard Desviation Shortest Path Lenght $\sigma{l}$", r"Average Accessibility $<\alpha^{h=2}$>", r"Average Accessibility $<\alpha^{h=3}$>"] #["Average Degree $<k_n>$", "Average PageRank $<PR>$", "Average Betweeness $<B>$", "Average Clustering Coeficient $<C>$", "Average Shortest Path Lenght $<l>$", "Average Symmetry Backbone $<Sb_{h=2}>$", "Average Symmetry Merge $<Sm_{h=2}>$", "Average Symmetry Backbone $<Sb_{h=3}>$", "Average Symmetry Merge $<Sm_{h=3}$>", r"Average Accessibility $<\alpha^{h=2}$>", r"Average Accessibility $<\alpha^{h=3}$>"]
 
 for dataset in datasets:
@@ -18,7 +18,7 @@ for dataset in datasets:
 			errors = []
 			for size in sizes:
 				series_ = []	
-				df = pd.read_csv("results/"+dataset+"_"+str(size)+"_common_words_4.txtvariability")
+				df = pd.read_csv("results/"+dataset+"_"+str(size)+"_common_words_4_graph2vec.txtvariability")
 				print(df.head(5))
 				series_.append(df[df["i_percentage"]==dim][measure])
 				df_ = pd.concat(series_, ignore_index=True)

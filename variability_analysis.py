@@ -6,8 +6,8 @@ if __name__ == '__main__':
     feat_sel = 'common_words' # top_50  common_words
     iterations = 4    
     datasets = ["13authors"]#['brown', 'vanessa', 'stanisz']
-    #sizes = [300, 600, 900, 1500, 1800, 2100]
-    sizes = [1200]
+    sizes = [900, 1500, 1800, 2100]
+    #sizes = [1200]
     #sizes = [100, 200, 300, 400, 500, 600]
     for dataset in datasets:
     	for size in sizes:
