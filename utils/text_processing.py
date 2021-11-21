@@ -93,11 +93,17 @@ def pre_process_text(text, remove_stop_words=False, only_stop_words=False, remov
         filtered_sentence = tokens
     return filtered_sentence
 
-def partition_text(texts, labels, length_cut, min_len_book, random_flag=1, step=0):
+
+def get_corpus(texts):
+  corpus = [word_tokenize(text) for text in texts]
+  return corpus
+  
+    
+def partition_text(corpus, labels, length_cut, min_len_book, random_flag=1, step=0):
   step = length_cut if step <= 0 else step
+  random_indexes = []
   #df_par = pd.DataFrame(columns = df.columns)
   #texts = df["text"].copy()
-  corpus = [word_tokenize(text) for text in texts]
   segmented_corpus = []
   new_texts = []
   new_labels = []
@@ -111,15 +117,16 @@ def partition_text(texts, labels, length_cut, min_len_book, random_flag=1, step=
     if random_flag < partitions:
       for i in range(random_flag):
       	random_index = random.randint(0, len(parts) - 1)
+      	random_indexes.append(random_index)
       	new_texts.append(parts[random_index])
       	new_labels.append(label)
     else:
       for p in parts:
         new_texts.append(p)
         new_labels.append(label)
-  return corpus, new_texts, new_labels
+  return new_texts, new_labels
 
-def get_process_corpus(selected, remove_punctuation_flag=True, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
+def get_process_corpus(selected, remove_punctuation_flag=True, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = ''):
   if remove_punctuation_flag:
     selected = remove_punctuation(selected)
   if lemmatization_flag:
@@ -129,8 +136,10 @@ def get_process_corpus(selected, remove_punctuation_flag=True, lemmatization_fla
     words_features = get_common_words(selected)
   elif feature_selection == 'stop_words':
     words_features = get_stop_words(selected)
-  else:
+  elif feature_selection.startswith('top_'):
     words_features = get_top_words(selected, top_number=feature_selection)
+  else:
+    words_features = None
   #if len(words_features) == 0:
   #  words_features = get_top_words(selected)
   if mode_sequences:
@@ -141,19 +150,17 @@ def get_min_len_corpus(texts):
   corpus = [len(word_tokenize(text)) for text in texts]
   return min(corpus)
   
-def get_corpus(texts, text_partition):
-  corpus = [word_tokenize(text) for text in texts]
-  #corpus = [i[:self.text_partition] for i in corpus]
-  min_size = text_partition
-  size_partitions = []
-  segmented_corpus = [] # segment corpus
-  for book in corpus:
-    partitions = int(round(len(book)/min_size,2) + 0.5) #? por que mas 0.5?
-    segments = [book[int(round(min_size * i)): int(round(min_size * (i + 1)))] for i in range(partitions)]
-    size_partitions.append(len(segments))
-    segmented_corpus.append(segments)
-    #self.iterations = int(np.mean(size_partitions))
-  return corpus, segmented_corpus
+#def get_corpus(texts, text_partition):
+#  corpus = [word_tokenize(text) for text in texts]
+#  min_size = text_partition
+#  size_partitions = []
+#  segmented_corpus = [] # segment corpus
+#  for book in corpus:
+#    partitions = int(round(len(book)/min_size,2) + 0.5) #? por que mas 0.5?
+#    segments = [book[int(round(min_size * i)): int(round(min_size * (i + 1)))] for i in range(partitions)]
+#    size_partitions.append(len(segments))
+#    segmented_corpus.append(segments)
+#  return corpus, segmented_corpus
 
 # get random partitions of book	
 def get_random_corpus(segmented_corpus, remove_punctuation_flag=False, lemmatization_flag=False, mode_sequences=True, number_iterations=4, feature_selection = 'common_words'):
@@ -182,3 +189,8 @@ def get_random_corpus(segmented_corpus, remove_punctuation_flag=False, lemmatiza
   return selected, words_features, word_index, index_word
 	
 
+def join_lists(l1):
+    str_res = ''
+    for x in l1:
+        str_res+= str(x) + ' '# + ' (+/-' + str(y) + ') '
+    return str_res

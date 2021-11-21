@@ -23,8 +23,8 @@ class Classification(object):
         c2 = KNeighborsClassifier(n_neighbors=5) ## testar outros parametros 3 41.6666666  ### 5 45.
         c3 = GaussianNB()
         c4 = SVC(kernel='linear', probability=True)
-        c5 = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-        classifiers = [c1,c2,c3,c4,c5]
+        #c5 = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+        classifiers = [c1,c2,c3,c4]
         results = []
         X_train, X_test, y_train, y_test = train_test_split(self.features, self.labels, stratify=self.labels, test_size=(1.0 - FRAC_TRAIN), random_state=RANDOM_SEED)
         for classifier in classifiers: 

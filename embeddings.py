@@ -1,7 +1,6 @@
 import pandas as pd
 from gensim.models import Word2Vec
 #from glove import Corpus, Glove # problems with mac
-import fasttext
 
 class WordEmbeddings(object):
 
@@ -24,8 +23,8 @@ class WordEmbeddings(object):
             return ''
 
     def train_word2vec(self):
-        model = Word2Vec(self.corpus, size=self.size, window=5, min_count=1, workers=4, sg=1)
-        words = model.wv.vocab
+        model = Word2Vec(self.corpus, vector_size=self.size, window=5, min_count=1, workers=4, sg=1)
+        words = model.wv.index_to_key
         model_dict = dict()
         for word in words:
             model_dict[word] = model.wv[word]

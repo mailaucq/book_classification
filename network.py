@@ -34,8 +34,9 @@ class CNetwork(object):
         self.document = document
         self.model = model
         self.percentages = percentages
-        self.words = list(set(self.document))
-        self.word_dict = {word:index for index, word in enumerate(self.words)}
+        if document:
+            self.words = list(set(self.document))
+            self.word_dict = {word:index for index, word in enumerate(self.words)}
         self.path = path
         self.index_word = index_word
         plataforma = platform.platform()

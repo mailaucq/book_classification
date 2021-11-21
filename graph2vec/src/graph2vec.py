@@ -63,7 +63,7 @@ def dataset_reader(path):
     name = path.strip(".json").split("/")[-1]
     data = json.load(open(path))
     graph = nx.from_edgelist(data["edges"])
-    print("GRAPHHHHH",graph)
+    
     if "features" in data.keys():
         features = data["features"]
     else:
@@ -95,7 +95,7 @@ def save_embedding(output_path, model, files, dimensions):
     out = []
     for f in files:
         identifier = f.split("/")[-1].strip(".json")
-        out.append([int(identifier)] + list(model.docvecs["g_"+identifier]))
+        out.append([int(identifier)] + list(model.dv["g_"+identifier]))
     column_names = ["type"]+["x_"+str(dim) for dim in range(dimensions)]
     out = pd.DataFrame(out, columns=column_names)
     out = out.sort_values(["type"])
@@ -114,7 +114,7 @@ def main(args):
 
     model = Doc2Vec(document_collections,
                     vector_size=args.dimensions,
-                    window=0,
+                    window=2,
                     min_count=args.min_count,
                     dm=0,
                     sample=args.down_sampling,
